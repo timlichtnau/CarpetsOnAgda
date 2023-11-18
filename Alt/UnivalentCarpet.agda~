@@ -1,0 +1,107 @@
+{-# OPTIONS --cubical #-}
+open import CarpetCubical3
+open import PointedTypesCubical
+open import Relation.Binary.Bundles 
+open import Agda.Builtin.Sigma
+open import Data.Product
+open import Agda.Builtin.Unit
+open import PropositionReasoning
+open import Level
+--open import Relation.Binary.PropositionalEquality hiding (trans)
+
+open import Function.Base using (_∘_)
+open import Relation.Binary.Definitions 
+open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+open import Equalizer
+open import SemiLattices
+open import cubical-prelude hiding (_∨_ ; _∧_)
+open import cubicalEqualityReasoning
+open import HomoAlgStd
+open import PropositionReasoning
+import Relation.Binary.Reasoning.Preorder
+
+module UnivalentCarpet (carpet : Carpet {o} {ℓ} {e} ) where
+open Carpet carpet
+open SemiLattice J
+open CarpetHelper carpet
+
+open Funs J
+open import Relation.Binary renaming (_⇒_ to _==>_)
+open import DoublePreorderReasoning
+open import FibreArgumentation
+private variable
+  j k l : Carrier
+record SubEl : Type (suc zero ⊔ o) where
+  constructor _,_
+  field
+    daIn : Carrier 
+    sub : (SubPtd (𝕏 daIn))
+open SubEl public
+open Monad (truncMonad)
+{--
+_→[_]_ : (A B : SubEl) → (l : Carrier ) → Type (o ⊔ e)
+_→[_]_ (j , A) l (k , B)  =
+  (x : 【 A 】) → ∥ (Σ[ y ∈ 【 B 】 ] ((j , proj₁ x) ≡[ l ] (k , proj₁ y) )) ∥₋₁ 
+--}
+record _=>_ (A B : SubEl) : Type (o ⊔ e) where
+  constructor Co
+  field
+    uncert : Carrier
+    atLeast : daIn A ∨ daIn B ≤ uncert
+    provider : (x : 【 sub A 】) →  ∥ (Σ[ y ∈ 【 sub B 】 ] ((daIn A , proj₁ x) ≡[ uncert ] (daIn B , proj₁ y) )) ∥₋₁
+  
+open _=>_ public
+refl=> : {A : SubEl} → A => A
+refl=> {A = (i , A)} = Co i  (sup reflexivity reflexivity)  (λ x →  ∣ x , refl≡  ∣₋₁)
+trans=> : Transitive _=>_ -- {A B C : SubEl} → TransitivA => B → B => C → A => C
+trans=> (Co l h p) (Co l' h' q)= Co (l ∨ l') (resp (uB ■ h) (uB' ■ h') )  λ x →
+  (y , α) ← p x ,
+  (z , β) ← q y ,
+  return (z , trans≡ α β)  
+IncUncert : {A B : SubEl} → ((Co j h p) : A => B) → j ≤ k  → A => B
+IncUncert {k = k}  (Co j h p) q = Co k (h ■ q) λ x → z ← p x , return ((proj₁ z , deeper  q (proj₂ z)))
+record _⊆_ (A B : SubEl) : Type e where
+  constructor _,_
+  field
+    myEdge : daIn A ≤ daIn B
+    myArg : (x : 【 sub A 】) → asType (⟨ sub B ⟩ (⟦ ϕ myEdge ⟧ (proj₁ x)))
+    
+-- substAlongReflex : {B : SubPtd (𝕏 j)}  → 【 B 】 → 
+
+intro⊂ : {A B : SubPtd (𝕏 j) } → A ⊂ B → (j , A) ⊆ (j , B)
+intro⊂ {B = B} (⊂: p) = reflexivity , (λ x → subst (λ r → asType( ⟨ B ⟩ r)) (sym (reflex _)) (p x))
+outro⊂ : {A B : SubPtd (𝕏 j)} → (j , A) ⊆ (j , B) → A ⊂ B
+outro⊂ p = ⊂: (λ x → {!!})
+=>To⊂ : {A B : SubEl} → (p : A => B) → uncert p ≤ daIn B → A ⊆ B
+=>To⊂ {A = A} {B = B} p q = ((uB ■ atLeast p) ■ q) , λ x →
+  truncIndSyntax (⟨ sub B ⟩ (⟦ ϕ ((uB ■ atLeast p) ■ q) ⟧ (proj₁ x)))
+  (provider p x)
+  λ bb →  subst (λ z →  asType (⟨ sub B ⟩ z)) (sym (foo x (proj₁ bb) (proj₂ bb))) (proj₂ (proj₁ bb)  ) where
+
+  foo : (x : 【 sub A 】)  →
+    (y :  【 sub B 】) →
+    (daIn A , proj₁ x) ≡[ uncert p ] (daIn B , proj₁ y)
+    →  ⟦ ϕ ((uB ■ atLeast p) ■ q) ⟧ (proj₁ x) ≡ proj₁ (y)
+  foo x y pf = {!cong proj₁ eq!} where open _≡[_]_ pf
+⊆Rel : PreOrderOn SubEl e
+⊆Rel = _⊆_ , (intro⊂ (refl⊂ _)) , (λ {k = A} (p , α) (q , β) → p ■ q ,
+    λ x → subst (T⟨ sub A ⟩) ( (transit' p q (proj₁ x))) (β (_ , α x))) -- ( () ) , {--
+{--
+trans =  } 
+--}
+=>Rel : PreOrderOn SubEl (o ⊔ e)
+=>Rel =  _=>_ , ( refl=> , trans=>  )
+imp : _⊆_ ==>  _=>_
+imp  {x = A} {y = B} (p , α) = Co (daIn B) (sup p reflexivity) λ x →
+  return ((⟦ ϕ p ⟧ (proj₁ x) , α x) , fwdEasy p)  
+
+pushForward :  {A : SubEl} → (p : daIn A ≤ j) → A  ⊆ (j , im (ϕ p))
+pushForward {j = j} {A = A}  p = p , λ x →   ∣ proj₁ x  , refl  ∣₋₁
+pushBackward : (p : k ≤ j) → (j , im (ϕ p)) => (k , full)
+pushBackward {k = k} {j = j}  p = Co j (right-Eat p) λ (x , q) →
+  (a , b) ← q ,
+  return ((a , *) , symm (bwd (toEl≡ b) refl≡))
+
+          
+module ARG where
+   open DoubleReasoning SubEl ⊆Rel =>Rel (λ x≤y y~z → IncUncert (trans=> (imp x≤y) y~z) (sup (uB ■ atLeast y~z) reflexivity)) public

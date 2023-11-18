@@ -1,0 +1,38 @@
+{-# OPTIONS --cubical #-}
+open import Level
+open import cubical-prelude hiding (_∨_)
+open import Data.Product
+open import PointedTypesCubical
+variable
+  o e : Level
+  
+record SemiLattice (o l e : Level) : Type (suc o ⊔ suc e ⊔ suc l) where
+  field
+    Carrier : Set o
+    CarIsSet : isSet (Carrier)
+    _≤_ : Carrier → Carrier → Type e
+    ≤isProp : {x y : Carrier} → isProp (x ≤ y)
+    reflexivity : {i : Carrier} → i ≤ i
+    _■_ : {i j k : Carrier} → i ≤ j → j ≤ k → i ≤ k
+    _∨_ : Carrier → Carrier → Carrier
+    comm : ∀ {i} {j} → i ∨ j  ≡ j ∨ i
+    upperBound : ∀ i j → i ≤ (i ∨ j) 
+    sup : ∀ {i} {j} {k} → i ≤ k → j ≤ k → (i ∨ j) ≤ k
+module _ (J : SemiLattice o ℓ e) where
+  open SemiLattice J
+  PathTo≤ : {x y : SemiLattice.Carrier J} → x ≡ y → SemiLattice._≤_ J x y
+  PathTo≤ {x = x} {y = y} p = (subst (λ a → SemiLattice._≤_ J x a ) p (SemiLattice.reflexivity J))
+  upperBound' :  ∀ i j → j ≤ (i ∨ j)
+  upperBound' k j' = upperBound j' k ■ PathTo≤ comm
+
+record Carpet {o l e : Level} : Set (suc l ⊔ suc e ⊔ suc o) where
+  constructor _,_
+  field
+    -- record {Carrier = I ; _≈_ =  _≈_ ; _≤_ = _≤_ ; isPartialOrder = isPartialOrder }  : Poset o l e
+    J : SemiLattice o l e
+  open SemiLattice J
+  field
+    X' : Carrier → Σ Ptd (λ X → isSet (U⊙ X))
+    ϕ : {i j : Carrier } → i ≤ j → proj₁ (X' i) ⊙→ proj₁ (X' j)
+    reflex : {i : Carrier } → ϕ (reflexivity) ~ ⊙id (proj₁ (X' i))
+    transit : {i j k : Carrier } → (p : (_≤_ i j)) → (q : (_≤_ j k)) → (r : (_≤_ i k)) → ϕ q ⊙∘ ϕ p ~ ϕ r

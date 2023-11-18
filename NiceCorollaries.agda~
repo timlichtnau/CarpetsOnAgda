@@ -1,0 +1,27 @@
+
+module NiceCorollaries {o e} (C : Carpet {o} {ℓ} {e})  where
+
+  open UnivalentCarpet2 C
+  open Monad truncMonad
+  twoFactorizationLemma : {i j k : Carrier} → (f : i ≤ j) → (g : j ≤ k) → (A : SubPtd (𝕏 i)) →  f ↓* A ⊂ g ↑* pushforward ((ϕ g) ⊙∘ (ϕ f)) A
+  twoFactorizationLemma {i = i} {j = j} {k = k} f g A = ezFactor {𝔸 = 𝕏 i} {𝔹 = 𝕏 j} {ℂ = 𝕏 k} A
+  module Adj {i j : Carrier} (g : i ≤ j) (A : SubPtd (𝕏 i))  where
+    open ARG
+    unit : (i , A) ==> (i ,  g ↑* g ↓* A )
+    unit =  IncUncert'' (
+      ROUNDTRIP
+            begin
+      (i , A)
+      ∼⟨ FWD' g ⟩
+      (j , g ↓* A)
+      ∼⟨ PB g (functPush (ϕ g) {A = A} Sth⊂Full) ⟩
+      (i , g ↑* g ↓* A)
+      ∎ ∶ refl=>'
+      MOVECHILDREN re < intro⊂ ( funcPull  (ϕ g) {A = g ↓* A} 0⊂Sth) >) (R∨ re)
+      {--
+ ∷  ∶  refl=>'
+--}
+    adjunction : (B : SubPtd (𝕏 j)) → g ↓* A ⊂ B → A ⊂ g ↑* B
+    adjunction B info  =  trans⊂ (to⊂' unit) (funcPull (ϕ g) info) 
+  twoFactorizationLemma' : {i j k : Carrier} → (f : i ≤ j) → (g : j ≤ k) → (A : SubPtd (𝕏 i)) →  f ↓* A ⊂ g ↑* (f ■ g) ↓* A
+  twoFactorizationLemma' f g A = subst (λ y → f ↓* A ⊂ g ↑* y) (leftFunc {A = A} f g) (to⊂' (Adj.unit g _))

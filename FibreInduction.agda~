@@ -1,0 +1,167 @@
+open import Data.Product
+open import Relation.Binary.PropositionalEquality
+open import PointedTypes2
+
+open import Univalence
+module FibreInduction where
+open  Ptd
+open _⊙→_
+open import Basics
+open ≡-Reasoning
+open import Function
+hasSection : {X Y : Set} → (f : X → Y) → Set
+hasSection {X} {Y} f = Σ[ g ∈ (Y → X) ] ((y : Y) → f (g y) ≡ y)
+fib : {X Y : Set} → (f : X → Y) → Y → Set
+fib {X} {Y} f y = Σ[ x ∈ X ] (f x ≡ y)
+$_$ : {X Y : Set} {f : X → Y} → (x : X) → fib f (f x)
+$ x $ = (x , refl)
+
+module _ {X : Set} (Y : X → Set) where
+  section = (x : X) → Y x
+  eva : (x' : X) → section → Y x'
+  eva x' f = f x'
+  ExtProp = (x : X) → hasSection (eva x)
+ExtProp' : {A : Set} → {X : A → Set} → (Y : (a : A) → X a → Set) → (f : (a : A) → X a) → Set
+ExtProp' {A} Y f = (a : A) → hasSection (eva (Y a) (f a))  
+ext : {X : Set} → {Y : X → Set}  {x' : X} → ExtProp Y → Y x' → section Y
+ext {x' = x'} ep = proj₁ (ep x')
+module FibInd {P : Set} {B : Set} {A : Set} (f : P → B) (g : B → A) where
+{--  Y : (p : P) → fib g (g (f p)) → Set
+  Y p b = fib f (proj₁ b) --}
+  --Y : {p : P} → fib g (g (f p)) → Set
+  --Y b = fib f (proj₁ b)
+  Y : {a : A} → fib g a → Set
+  Y b = fib f (proj₁ b)
+  SEP : Set
+  SEP = section (λ p → ExtProp (Y {g (f (p))}))
+  BASE = Σ[ p ∈ P ] fib g (g (f p))
+
+  iso' : {X : Set} {Y : X → Set} {Z : (x : X) → Y x → Set}  → ((x : X) → (y : Y x) → Z x y) → ((x , y) : Σ X Y) → Z x y
+  iso' sep z = sep (proj₁ z) (proj₂ z)
+  YY : (v : Σ P (λ v₁ → fib g (g (f v₁)))) → Set
+  YY = λ v → hasSection (eva Y (proj₂ v))
+  pmap : P → BASE
+  pmap p =  (p , $ f p $)
+  localSectionThroughPoint : B → Set
+  localSectionThroughPoint b = hasSection (eva Y $ b $) -- ExtProp' Y (λ p → $ f p $) 
+
+  can : (p : P) → (section localSectionThroughPoint) → hasSection (eva Y $ f p $)
+  can p = eva (localSectionThroughPoint) (f p)
+
+  postulate  FIBRE-IND : ExtProp localSectionThroughPoint
+  can' : (p : P) → SEP → localSectionThroughPoint (f p)
+  can' p = can p ∘ (λ sep q → {!iso' sep ?!})
+--  can'Inv : (p : P) →  localSectionThroughPoint p → SEP
+--  can'Inv p lsectionThroughp q b = (λ fibb → helper {!!}) , λ yqb → {!!} where
+--    helper : fib f (f q) → section Y
+--    helper = proj₁ (ext FIBRE-IND lsectionThroughp q)
+module FibInduction {ℙ : Ptd} {𝔹 : Ptd} {𝔸 : Ptd} (pf : ℙ ⊙→ 𝔹) (pg : 𝔹 ⊙→ 𝔸) where
+
+  private
+    f = ⟦ pf ⟧
+    g = ⟦ pg ⟧
+    A = U⊙ 𝔸
+    B = U⊙ 𝔹
+    P = U⊙ ℙ
+    Bf : A → Set
+    Bf = fib g
+  Pf : B → Set
+  Pf = fib f  
+  localSection : (a : A) → Set
+  localSection a = (b : Bf a) → (Pf (proj₁ b))
+  
+ 
+  eval : {a : A} (b : Bf a) → (localSection a) → (fib f (proj₁ b)) 
+  eval b s = s b
+  module _ (p : P) where
+    ev : localSection (g (f p)) → fib f (f p)
+    ev = eval $ f p $    
+    localBasedSection : Set
+    localBasedSection = fib (proj₁ ∘ ev) p -- Σ[ s ∈ localSection (g (f p)) ] proj₁ (ev p s) ≡ p
+  -- Σ[ s ∈ localSection (pt 𝔸) ] proj₁ (s (pt 𝔹 , psv pg)) ≡ pt ℙ
+
+
+    pointExtendsToASection : Set
+    pointExtendsToASection = hasSection ev
+  SectionExtensionPrinciple : Set
+  SectionExtensionPrinciple = (p : P) → pointExtendsToASection (p) 
+  can : SectionExtensionPrinciple → localBasedSection (pt ℙ)
+  can sep =  ( s ,  aim ) where ----tp {!!} (psv (pg ⊙∘ pf))
+    sec : hasSection (eval $ (f (pt ℙ)) $)
+    sec = sep (pt ℙ)
+    s : localSection (g (f (pt ℙ)))
+    s = (proj₁ sec) $ pt ℙ $
+    aim : proj₁ (s $ f (pt ℙ) $) ≡ pt ℙ
+    aim = ap (proj₁) (proj₂ sec $ pt ℙ $)
+  postulate fiber-induction : hasSection can
+  getSep : localBasedSection (pt ℙ) → SectionExtensionPrinciple
+  getSep = proj₁ fiber-induction
+
+Ex : {𝔸 𝔹 : Ptd} → (g : 𝔹 ⊙→ 𝔸) → (f' : U⊙ 𝔹 → Set) → (a : U⊙ 𝔸)
+  → ((b : fib ⟦ g ⟧ (pt 𝔸)) → f' (proj₁ b))
+  → Σ[ b ∈ fib ⟦ g ⟧ a ] (f' (proj₁ b))
+  →  ((b : fib ⟦ g ⟧ a) → f' (proj₁ b))
+Ex {𝔸} {𝔹} g f' a ker ((w1 , w2) , w3) b = foo where
+  oB = ker (pt 𝔹 , psv g)
+  B = U⊙ 𝔹
+  ℙ : Ptd
+  ℙ = (Σ B f' , (pt 𝔹) , oB)
+  pf : ℙ ⊙→ 𝔹
+  pf = proj₁ , refl
+  open FibInduction pf g
+
+  sep : SectionExtensionPrinciple
+  sep = getSep ((λ b → ((proj₁ b , ker' b)) , refl) , refl) where
+      ker' : (b : fib ⟦ g ⟧ (⟦ g ⟧ (pt 𝔹) )) → f' (proj₁ b) 
+      ker' b = ker (proj₁ b , proj₂ b ■ psv g)   
+  bar : pointExtendsToASection (w1 , w3)
+  bar = sep (w1 , w3)
+  bar' : Pf (proj₁ b)
+  bar' = (tp localSection w2 (proj₁ bar (((w1 , w3)) , refl))) b
+  foo : f' (proj₁ b)
+  foo = let ((_ , x) , y) = bar' in  tp f' y x 
+
+module _ {A' : Ptd} {B : U⊙ A' → Set} (b* : B (pt A')) (P : Σ (U⊙ A') B → Set) (p* : P (pt A' , b*)) where
+  open  Ptd
+  private
+    A = U⊙ A'
+    𝔹 = Σ A B
+    ℙ = Σ 𝔹 P
+    -a : ℙ → A
+    -a ( (a , _) , _) = a
+    -b : ℙ → 𝔹
+    -b = proj₁
+    SectionOver : A → Set
+    SectionOver a = (b : B a) → P (a , b)
+    stdP : ℙ 
+    stdP = ((pt A' , b*) , p*)
+    -- ℙ' = Σ[ x ∈ A ] (Σ[ y ∈ B x ] P ( x , y))
+    !_! : {a : A} → (b : B a) → SectionOver a →  P (a , b) -- (Σ[ y ∈ B a ] P ( a , y))
+    ! b !  f = f b
+    ℙ' : A → Set
+    ℙ' a = Σ[ b ∈ B a ] (P ( a , b))
+    iso : {a : A} → ℙ' a → ℙ
+    iso {a} (b , p) = ((a , b) , p)
+    stdp' : ℙ' (pt A')
+    stdp' = (b* , p*)
+    prB : (p : ℙ) → (B (-a p))
+    prB p = proj₂ (-b p)
+  hasSecProp : Set
+  hasSecProp = ((p : ℙ) → hasSection ! prB p !)
+  can : ℙ' (pt A') → hasSecProp → SectionOver (pt A')
+  can p f = proj₁ (f (iso p)) (proj₂ p)
+  postulate axiomP : (p : ℙ' (pt A')) → hasSection (can p)
+  axiom = axiomP stdp'
+--  INV : SectionOver (pt A') → (p  : ℙ) → P (-b p) → SectionOver (-a p)
+ -- INV s p =
+  app : {X : Set} {Y : X → Set} {f g : (x : X) → Y x } → f ≡ g → (x : X) → f x ≡ g x
+  app refl x = refl
+  SEC : (s : SectionOver (pt A')) → ∀ x → (can stdp' ((proj₁  axiom) s)) x ≡ s x -- can ((proj₁ axiom) s) ≡ s
+  SEC s x = app (proj₂  axiom s) x -- app (proj₂ axiom s) x
+  INV : SectionOver (pt A') → (p : ℙ) → SectionOver (-a p)
+  INV s p = proj₁ ((proj₁ axiom) s p) (proj₂ p)
+ -- test : (s : SectionOver (pt A')) → ((b , p) : Σ (B (pt A')) (λ b → P ( pt A' , b ))) →
+ --   INV s ((pt A' , b) , p) b ≡ p
+ -- test s (b , p) = {!SEC ? ?!}
+  --f (proj₂  (-b p)) ≡ proj₂ p)
+

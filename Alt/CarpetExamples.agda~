@@ -1,0 +1,3 @@
+
+      module _ (i j : ℕ) (ex0 : Exact H j) (ex1 : Exact H (1 + j))  where
+      vierer-surj : epi (g 0) → epi (g 2) → mono (g 3) → epi (g 1) 

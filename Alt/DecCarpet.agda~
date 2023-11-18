@@ -1,0 +1,111 @@
+{-# OPTIONS --cubical #-}
+open import PointedTypesCubical
+open import Relation.Binary.Bundles 
+open import Agda.Builtin.Sigma
+open import Data.Product
+
+open import Level
+--open import Relation.Binary.PropositionalEquality hiding (trans)
+open import Relation.Binary.Core
+open import Function.Base using (_∘_)
+open import Relation.Binary.Definitions
+open import Relation.Binary.Structures using (IsPartialOrder)
+
+open import cubical-prelude
+open Ptd
+open _⊙→_
+variable
+  o l e : Level
+record SemiLattice (o l e : Level) : Type (suc o ⊔ suc e ⊔ suc l) where
+  field
+    Carrier : Set o
+    CarIsSet : isSet (Carrier)
+    _≤_ : Carrier → Carrier → Type e
+    ≤isProp : {x y : Carrier} → isProp (x ≤ y)
+    reflexivity : {i : Carrier} → i ≤ i
+    _■_ : {i j k : Carrier} → i ≤ j → j ≤ k → i ≤ k
+    join : Carrier → Carrier → Carrier
+    comm : ∀ {i} {j} → join i j  ≡ join j i
+    upperBound : ∀ i j → i ≤ (join i j) 
+    sup : ∀ {i} {j} {k} → i ≤ k → j ≤ k → (join i j) ≤ k
+PathTo≤ : (J : SemiLattice o l e) → {x y : SemiLattice.Carrier J} → x ≡ y → SemiLattice._≤_ J x y
+PathTo≤ J {x = x} {y = y} p = (subst (λ a → SemiLattice._≤_ J x a ) p (SemiLattice.reflexivity J))
+record Carpet {o l e : Level} : Set (suc l ⊔ suc e ⊔ suc o) where
+  constructor _,_
+  field
+    -- record {Carrier = I ; _≈_ =  _≈_ ; _≤_ = _≤_ ; isPartialOrder = isPartialOrder }  : Poset o l e
+    J : SemiLattice o l e
+  open SemiLattice J
+  field
+    X : Carrier → Ptd
+    ϕ : {i j : Carrier } → i ≤ j → X i ⊙→ X j
+    reflex : {i : Carrier } → ϕ (reflexivity) ~ ⊙id (X i)
+    transit : {i j k : Carrier } → (p : (_≤_ i j)) → (q : (_≤_ j k)) → (r : (_≤_ i k)) → ϕ q ⊙∘ ϕ p ~ ϕ r
+
+module _ (C : Carpet {o} {l} {e}) where
+  Lat = Carpet.J C
+  open Carpet C 
+  open SemiLattice Lat
+
+  transit' : {i j k : Carrier} → (p : i ≤ j) → (q : j ≤ k) → ϕ q ⊙∘ ϕ p ~ ϕ (p ■ q)
+  transit' p q = transit p q (p ■ q)
+
+  Elts : Set o
+  Elts = Σ (Carrier) (U⊙ ∘ X)
+  _<_ : Elts → Carrier → Set e
+  (i , x) < j = i ≤ j
+  ElUnder : Carrier → Set (o ⊔ e)
+  ElUnder j = Σ Elts (λ e → e < j)
+  ≡ElUnder : {e e' : Elts} → (j : Carrier) → (x y : ElUnder j ) → proj₁ x ≡ proj₁ y → x ≡ y
+  ≡ElUnder j x y p i = (p i) , {!? ■ ?!}
+  ac : ∀ {j} e → e < j → Elts
+  ac {j} (i , x)  p = j ,  ⟦ ϕ p ⟧ x
+  actrans : ∀ {j k} e → (p : e < j) → (q : j ≤ k) → ac (ac e p) q ≡ (ac e (p ■ q))
+  actrans e p q i = _ , transit' p q (snd e) i
+  accong : ∀ {j} e e' → (p : e < j) → (pf : e' ≡ e) → ac e p ≡ ac e' (PathTo≤ J (λ i → fst (pf i)) ■ p)
+  accong e e' p pf =
+    ac e p
+      ≡⟨ {!!} ⟩
+    {!!}
+      ≡⟨ (λ j → _ , {!⟦ ϕ p ⟧ !}) ⟩
+    ac (ac e' (PathTo≤ J (λ i → proj₁ (pf i)))) p
+      ≡⟨ actrans e' _ _ ⟩
+    ac e' (PathTo≤ J (λ i → proj₁ (pf i)) ■ p) ∎ -- {!fst (pf i) !} , {!!}
+  commSq : ∀ {j j'  k} e →
+    (p : e < j) →
+    (q : j ≤ k) → (p' : e < j') → (q' : j' ≤ k) → ac (ac e p) q ≡ ac (ac e p') q'
+  commSq {k = k} e p q p' q' =
+    ac (ac e p) q
+      ≡⟨ actrans e p q ⟩
+    ac e (p ■ q)
+      ≡⟨  (λ i → ac {j = k} e (≤isProp (p ■ q) (p' ■ q') i ) )  ⟩
+    ac e (p' ■ q')
+      ≡˘⟨ actrans e p' q' ⟩
+    ac (ac e p') q' ∎
+  
+  syntax ac e p = e § p
+
+  record _≡[_]_ (ix : Elts) (k : Carrier) ( jy : Elts) : Set (o ⊔ e) where
+    field
+      left : fst ix ≤ k
+      right : fst jy ≤ k
+      eq : ac ix left ≡ ac jy right
+  open _≡[_]_
+  fwd : (ix jy : Elts) → (j' k : Carrier) → (p : jy < j') → ix ≡[ k ] jy →
+    ix ≡[ join k j' ] (ac jy p) --(p $ ix)
+  fwd ix jy j' k p z = record {
+    left = (left z) ■ (upperBound k j') ;
+    right = (upperBound j' k) ■  (PathTo≤ J comm) ;
+    eq = helper
+
+    } where
+          helper :  ac ix ((left z) ■ (upperBound k j')) ≡
+                     ac (ac jy p) (upperBound j' k ■ PathTo≤ J comm)
+          helper =
+            ac ix (left z ■ upperBound k j')
+              ≡˘⟨ actrans ix (left z) (upperBound k j') ⟩
+            ac (ac ix (left z)) (upperBound k j')
+              ≡⟨ cong (λ ww → {!ac ww (upperBound k j')!}) (eq z) ⟩ -- cong (λ x → _ , ⟦ ϕ (upperBound k j') ⟧ x) {! (eq z) !} ⟩
+            ac (ac jy (right z)) (upperBound k j')
+              ≡⟨ (commSq jy (right z) (upperBound k j') p (upperBound j' k ■ PathTo≤ J comm)) ⟩
+            ac (ac jy p) (upperBound j' k ■ PathTo≤ J comm) ∎ 
