@@ -1,16 +1,16 @@
-{-# OPTIONS --cubical --without-K #-}
+{-# OPTIONS --cubical -WnoUnsupportedIndexedMatch #-}
 open import CarpetCubical3 
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import CubicalBasics.PropositionReasoning
-open import Level
+-- open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 -- open import Relation.Binary.Core
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions
-open import Relation.Binary.Structures using (IsPartialOrder)
+-- open import Function.Base using (_∘_)
+--open import Relation.Binary.Definitions
+--open import Relation.Binary.Structures using (IsPartialOrder)
 
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
@@ -18,11 +18,11 @@ open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 
 open import Grids hiding (_≤_)
-open import Data.Nat.Base hiding (_! ; _≤_ ; _⊔_)
+open import Cubical.Data.Nat.Base -- hiding (_! ; _≤_ ; _⊔_)
 import UnivalentCarpet2
 -- open import CarpetAufsatzExamples2
 import SmartImplication
-open import Data.Nat.Properties using (n≤1+n ; ≤-refl)
+open import Cubical.Data.Nat.Properties -- using (n≤1+n ; ≤-refl)
 {--
 There are two notions in this chapter:
  0 . A ⇔ B is saying that B is equal to the pushforward of A along |A|of cocartesian morphism : 
@@ -71,7 +71,7 @@ i ------> j
 Means that there exists a unique morphism B -> B over the identity of j (i.e. an inclusion). For the definition of the index category see overleaf.
 
 --}
-  _⇒_ : SubEl → SubEl → Set (lsuc lzero Level.⊔ o Level.⊔ e)
+  _⇒_ : SubEl → SubEl → Set (ℓ-max (ℓ-max (ℓ-suc ℓ-zero) o) e)
   A ⇒ B = Σ[ ρ ∈ A =>' B ] (
     ∀ b → F B ~ b ~ UNC ρ ~> A 
    → asType (b ∈∈ sub B))
@@ -80,7 +80,7 @@ Means that there exists a unique morphism B -> B over the identity of j (i.e. an
                                                 (λ y →
                                                    (daIn (F B) , proj₁ b) ≡[ UNC (proj₁ ρ) ] (daIn A , proj₁ y)) → asType (b ∈∈ sub B)--}
 --  syntax ρ ∣ b > x = ρ b (return x) -- where open Monad truncMonad
-  _⇒[_]_ : SubEl → Carrier → SubEl → Set (lsuc lzero Level.⊔ o Level.⊔ e)
+  _⇒[_]_ : SubEl → Carrier → SubEl → Set (ℓ-max (ℓ-max (ℓ-suc ℓ-zero) o) e)
 
   A ⇒[ l ] B = Σ[ ρ ∈ A ⇒ B ] (l ≡ UNC (proj₁ ρ))
 

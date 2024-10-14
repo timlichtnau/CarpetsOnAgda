@@ -1,28 +1,28 @@
 {-# OPTIONS --cubical --without-K #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+-- open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+-- open import Function.Base using (_∘_)
+-- open import Relation.Binary.Definitions 
+open import Cubical.Relation.Binary.Order using (IsPoset ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 
-import Relation.Binary.Reasoning.Base.Single
+-- import Relation.Binary.Reasoning.Base.Single
 import HomoAlgOnCarpets
 import SmartImplication
-open import Relation.Binary renaming (_⇒_ to _==>_)
-open import DoublePreorderReasoning
+-- open import Relation.Binary renaming (_⇒_ to _==>_)
+-- open import DoublePreorderReasoning
 open import FibreArgumentation
 import FiberInduction
 import SupporterInduction
@@ -69,12 +69,13 @@ data _=>'2[_]_
     data _⇒[_]_ : (A : SubPtd (𝕏 start)) → (C : Chain start end) → (B : SubPtd (𝕏 end)) → Set {!!} where
       singleIntro : (l : Above (start ∨ end)) → ∀ {A B} → (start , A) =>'[ proj₁ l ] (end , B) → A ⇒[ single start end l ] B
       
---}      
+--}
+
 module ARG where
   -- open Relation.Binary.Reasoning.Base.Single (_=>'_) refl=>' trans=>' public -- (λ p q → trans=>' q p) public
   -- ¶ : Preorder (suc zero ⊔ o) (suc zero ⊔ o) (suc zero ⊔ o ⊔ e) -- PreOrderOn SubEl (suc zero ⊔ o ⊔ e)
   -- ¶ = PreOrderOnToPreOrder (_=>'_ , (refl=>' , trans=>'))
-  open Relation.Binary.Reasoning.Base.Single _=>'_ refl=>' trans=>' hiding (_IsRelatedTo_) public
+  open Cubical.Relation.Binary.Order.PreorderReasoning ( SubEl , Cubical.Relation.Binary.Order.preorderstr  _=>'_  (Cubical.Relation.Binary.Order.ispreorder SubEl_isSet =>'isPropValued (λ x → refl=>') λ x y z → trans=>'))  --) -- refl=>' trans=>' hiding (_IsRelatedTo_) public
 
  -- syntax step-∼˘ z y∼z x∼y = x∼y ~⟨ y∼z ⟩ z
   infixl 2 step-∼˘ transsyntax
@@ -87,8 +88,9 @@ module ARG where
  ---discouraged:
   syntax transsyntax z p q = p ~⟨ q ⟩ z
 
-  data _IsRelatedTo_ (x y : SubEl) : Set (suc zero ⊔ o ⊔ e) where
+  data _IsRelatedTo_ (x y : SubEl) : Set (suc lzero ⊔ o ⊔ e) where
     relTo : (x∼y : x =>' y) → x IsRelatedTo y
+    
   start_ : ∀ x → x IsRelatedTo x
   start_ x = relTo refl=>'    
   lets_ : ∀ {x y} → x IsRelatedTo y → x =>' y
@@ -96,7 +98,21 @@ module ARG where
   step-∼˘ : ∀ {x y} z → y =>' z → x IsRelatedTo y → x IsRelatedTo z
   step-∼˘ z (y∼z) (relTo x∼y) = relTo (trans=>' x∼y y∼z)
 
-  
+  infix 1 begin_
+  begin_ : ∀ {x y} → x =>' y → x =>' y
+  begin_ x∼y = x∼y
+
+  infixr 2 _∼⟨_⟩_
+  _∼⟨_⟩_ = _≲⟨_⟩_
+  infix 3 _∎
+  _∎ = _◾
+  test : (x y z : SubEl) → x =>' y → y =>' z → x =>' z
+  test x y z p q =
+    begin
+      x ∼⟨ p ⟩ y
+        ∼⟨ q ⟩ z ∎
+       
 
 
  
+

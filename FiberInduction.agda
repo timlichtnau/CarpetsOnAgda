@@ -1,28 +1,28 @@
 {-# OPTIONS --cubical --without-K #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+--open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+--open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+--open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+--open import Function.Base using (_∘_)
+--open import Relation.Binary.Definitions 
+--open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 
-import Relation.Binary.Reasoning.Base.Single
+--import Relation.Binary.Reasoning.Base.Single
 import HomoAlgOnCarpets
 import SmartImplication
-open import Relation.Binary renaming (_⇒_ to _==>_)
-open import DoublePreorderReasoning
+--open import Relation.Binary renaming (_⇒_ to _==>_)
+--open import DoublePreorderReasoning
 open import FibreArgumentation
 import SupporterInduction
 import NaiveImplication
@@ -40,7 +40,7 @@ open Monad (truncMonad)
 
 
 
-record IndScheme (B B' : SubPtd (𝕏 j)) {q : j ≤ k} (P : SubEl) : Type (suc zero ⊔ e ⊔ o) where
+record IndScheme (B B' : SubPtd (𝕏 j)) {q : j ≤ k} (P : SubEl) : Type (suc lzero ⊔ e ⊔ o) where
   field
     ker=>P : Ker q =>' P
     B=>B' : (j , B) =>' (j , B')

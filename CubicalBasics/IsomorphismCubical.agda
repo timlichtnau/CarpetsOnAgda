@@ -1,6 +1,6 @@
 {-# OPTIONS --cubical --without-K --safe #-}
-open import CubicalBasics.cubical-prelude
-open import Data.Product
+open import CubicalBasics.cubical-prelude hiding (ΣPathP ; PathPΣ)
+-- open import Cubical.Data.Prod 
 module CubicalBasics.IsomorphismCubical where
 module _ {ℓ ℓ'} {A : Type ℓ} {B : Type ℓ'} where
   section : (f : A → B) → (g : B → A) → Type ℓ'

@@ -1,28 +1,28 @@
 {-# OPTIONS --cubical --without-K #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+--open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+--open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+-- open import Function.Base using (_∘_)
+open import Cubical.Relation.Binary.Order.Preorder using (IsPreorder)
+-- open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 
-import Relation.Binary.Reasoning.Base.Single
+-- import Relation.Binary.Reasoning.Base.Single
 import HomoAlgOnCarpets
-
-open import Relation.Binary renaming (_⇒_ to _==>_)
-open import DoublePreorderReasoning
+open import Cubical.Relation.Binary.Base -- using (BinaryRelation.isTrans)
+--open import Cubical.Relation.Binary.Base renaming (_⇒_ to _==>_)
+--open import DoublePreorderReasoning
 open import FibreArgumentation
 
 module NaiveImplication {o e} (carpet : Carpet {o} {ℓ} {e} ) where
@@ -53,9 +53,10 @@ record _=>_ (A B : SubEl) : Type (o ⊔ e) where
   right' : daIn B ≤ uncert
   right' = uB' ■ atLeast
 open _=>_ public
+postulate =>isProp : ∀ x y → isProp (x => y) 
 refl=> : {A : SubEl} → A => A
 refl=> {A = (i , A)} = i ,   AR (λ x →  ∣ x , refl≡  ∣₋₁)
-trans=> : Transitive _=>_ -- {A B C : SubEl} → TransitivA => B → B => C → A => C
+trans=> : {A B C : SubEl} → A => B → B => C → A => C --  BinaryRelation.isTrans _=>_ -- 
 trans=> (l , AR p) ( l' , AR q)= (l ∨ l') ,   AR λ x → --(resp (uB ■ h) (uB' ■ h') 
   (y , α) ← p x ,
   (z , β) ← q y ,
@@ -92,9 +93,9 @@ IncUncert {k = k}  (j , AR p) q = k , AR λ x → z ← p x , return ((proj₁ z
         ≡⟨ §refl=id ⟩ 
       (daIn B , proj₁ y) ∎  where open Reasoning
 
-=>Rel : PreOrderOn SubEl (o ⊔ e)
-=>Rel =  _=>_ , ( refl=> , trans=>  )
-imp : _⊆_ ==>  _=>_
+=>Rel : Cubical.Relation.Binary.Order.Preorder.IsPreorder  _=>_ -- (o ⊔ e)
+=>Rel =  Cubical.Relation.Binary.Order.Preorder.ispreorder SubEl_isSet (λ x y → =>isProp x y) (λ x → refl=>) (λ _ _ _ → trans=>) -- _=>_ , ( refl=> , trans=>  )
+imp : ∀ {x y} →  (x ⊆ y) →  (x => y)
 imp  {x = A} {y = B} (p , α) = (daIn B) , AR λ x →
   return ((⟦ ϕ p ⟧ (proj₁ x) , α x) , fwdEasy p)
 trans≤=> : ∀ {x y z} → (x ⊆ y) → y => z → x => z

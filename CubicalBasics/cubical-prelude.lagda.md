@@ -6,13 +6,16 @@ documented.
 {-# OPTIONS --cubical --without-K --safe #-}
 
 module CubicalBasics.cubical-prelude where
-open import Relation.Binary.Structures public
+-- open import Relation.Binary.Structures public
 open import Agda.Builtin.Cubical.Path public
+open import Agda.Primitive renaming (lsuc to suc) public
+open import Cubical.Relation.Binary
 open import Agda.Builtin.Equality renaming (_≡_ to _≡'_ ; refl to refl') public
-open import Data.Product public
+-- open import Cubical.Data.Prod using (proj₁ ; proj₂ )
+open import Cubical.Data.Sigma public renaming (fst to proj₁ ; snd to proj₂)
 open import Agda.Builtin.Cubical.Sub public
-  renaming ( inc to inS
-           ; primSubOut to outS
+  renaming ( 
+           primSubOut to outS
            )
 open import Agda.Primitive.Cubical public
   renaming ( primIMin       to _∧_  -- I → I → I
@@ -65,8 +68,7 @@ variable
 
 -- Non dependent path types
 
-Path : ∀ {ℓ} (A : Type ℓ) → A → A → Type ℓ
-Path A a b = PathP (λ _ → A) a b
+
 
 -- PathP (λ i → A) x y gets printed as x ≡ y when A does not mention i.
 --  _≡_ : ∀ {ℓ} {A : Type ℓ} → A → A → Type ℓ
@@ -90,21 +92,13 @@ infixr 30 _∙_
 invEquiv : {A : Type ℓ} {B : Type ℓ'} {f : A → B} → (isEquiv f) → B → A
 invEquiv p b = proj₁ (proj₁ ((equiv-proof p b))) 
 
-_[_↦_] : ∀ {ℓ} (A : Type ℓ) (φ : I) (u : Partial φ A) → SSet ℓ
-A [ φ ↦ u ] = Sub A φ u
-
-infix 4 _[_↦_]
 
 --- Homogeneous filling
-hfill : {A : Type ℓ} {φ : I} (u : ∀ i → Partial φ A) (u0 : A [ φ ↦ u i0 ]) (i : I) → A
-hfill {φ = φ} u u0 i =
-  hcomp (λ j → λ { (φ = i1) → u (i ∧ j) 1=1
-                 ; (i = i0) → outS u0 })
-        (outS u0)
+
 refl : {A : Type ℓ} {x : A} → x ≡ x
 refl {x = x} i = x
-≡isEq : {A : Type ℓ} → IsEquivalence {A = A} _≡_
-≡isEq =  record { refl = refl ; sym = sym ; trans = _∙_ } 
+≡isEq : {A : Type ℓ} → BinaryRelation.isEquivRel {A = A} _≡_
+≡isEq =  record { reflexive = λ a →  refl ; symmetric = λ _ _ p → sym p  ; transitive = λ a b c p q → p ∙  q  } --_∙_
 cong : {A : Type ℓ} {B : Type ℓ'} {x y : A} (f : A → B) → x ≡ y → f x ≡ f y
 cong f p i = f (p i)
 syntax cong f p   = f ←[ p ]
@@ -302,7 +296,7 @@ module _ where
   isEquivTransport p =  transport (λ i → isEquiv (transp (λ j → p (i ∧ j)) (~ i))) (idEquiv _ .proj₂)
   transportRefl : (x : A) → transport refl x ≡ x
   transportRefl {A = A} x i = transp (λ _ → A) i x
-  ua : {A B : Type ℓ} → A ≃ B → A ≡ B
+  ua : {A B : Type ℓ}  → A ≃ B → A ≡ B
   ua {A = A} {B = B} e i = Glue B (λ { (i = i0) → (A , e)
                                    ; (i = i1) → (B , idEquiv B) })
   uaβ : (e : A ≃ B) (x : A) → transport (ua e) x ≡ proj₁ e x
@@ -314,3 +308,8 @@ module _ where
   substEquiv≃ S e = (substEquiv S e) , (isEquivTransport (cong S (ua e)))
 data 𝟏 {l : Level } : Set l where
       * : 𝟏
+id  :  {A : Type ℓ} →  A → A
+id x = x
+
+_∘_ : {A : Type ℓ} {B : Type ℓ'} {C : Type ℓ''} → (B → C) → (A → B) → A → C
+f ∘ g = λ x → f (g x)

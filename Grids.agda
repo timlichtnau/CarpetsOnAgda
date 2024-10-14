@@ -1,21 +1,23 @@
 {-# OPTIONS --cubical --without-K #-}
-open import Data.Integer.Base renaming (_⊔_ to max) renaming (_≤_ to _≤ℤ_ ; neg to negate)
-open import Data.Nat.Base using (suc)
+open import Cubical.Data.Int.Base renaming ( neg to negate)
+open import Cubical.Data.Int.Properties renaming ( isSetℤ to ℤisSet)
+open import Cubical.Data.Int.Order renaming ( _≤_ to _≤ℤ_ ; isRefl≤ to ≤-refl ; isTrans≤ to ≤-trans)
+open import Cubical.Data.Nat.Base using (suc)
 open import CubicalBasics.PointedTypesCubical
 open import HomoAlgStd
 open import CubicalBasics.PointedTypesCubical
 import UnivalentCarpet2
-open import Data.Product
+--open import Data.Product
 open import CubicalBasics.cubical-prelude
 open import CarpetCubical3
 open import Agda.Builtin.Equality renaming (_≡_ to _≡'_)
 open import SemiLattices
-open import Data.Integer.Properties
+open import Cubical.Data.Int hiding (neg) -- ; _+_)
 open import EqualitiesCubical
-open import Level
-open import Algebra.Construct.NaturalChoice.Base
-open import Axiom.UniquenessOfIdentityProofs
-open import Relation.Binary.Definitions
+--open import Level
+--open import Algebra.Construct.NaturalChoice.Base
+--open import Axiom.UniquenessOfIdentityProofs
+--open import Relation.Binary.Definitions
 
 data Dir : Set where
   H : Dir
@@ -36,13 +38,13 @@ neg H = V
 neg V = H
 neg D = D
 _+x_ : Dir → ℤ → ℤ
-H +x y = + 1 + y
+H +x y = 1 + y
 V +x y = y
-D +x y = + 1 + y
+D +x y = 1 + y
 _+y_ : Dir → ℤ → ℤ
 H +y y = y
-V +y y  = + 1 + y
-D +y y = + 1 + y
+V +y y  = 1 + y
+D +y y = 1 + y
 infix 21 _°
 _° : Pos → Pos
 p ° = (dir p) ! (dir p +x xarg p) ! (dir p +y yarg p)
@@ -53,38 +55,37 @@ _! : Pos → Pos
 (v ! x ! y) ! = neg v ! x ! y
 infixl 15 _✯_ 
 _✯_ : ℤ → Pos → Pos
-(+ 0) ✯ j = j
-(+ (suc p)) ✯ j = (+ p) ✯ j °
-(-[1+ 0 ]) ✯ j = invVec j
-(-[1+ (suc p) ]) ✯ j = ( + p) ✯ (invVec j ° )
+(pos 0) ✯ j = j
+(pos (suc p)) ✯ j = (pos p) ✯ j °
+(negsuc 0) ✯ j = invVec j
+(negsuc (suc p)) ✯ j = (negsuc p) ✯ (invVec j ° )
 
 module _  where
   _≤_ : ℤ × ℤ → ℤ × ℤ → Set
-  _≤_ = λ (a , b) (a' , b') → a ≤ℤ a' × b ≤ℤ b'
+  _≤_ = λ (a , b) (a' , b') → (a ≤ℤ a') × (b ≤ℤ b')
   -- We want a relative version of grids, i.e. a carpet on J should be the same as the transportet carpet along p on J + p, for this we have to replace the Carrier by ℤ × ℤ
   --comp to FibreArgumentation
   J : SemiLattice lzero lzero lzero
   J = record
         { Carrier = ℤ × ℤ
-        ; CarIsSet = λ _ _  p q i j → ((ℤisSet (λ i → proj₁ (p i)) (λ i → proj₁ (q i))) i j) , (((ℤisSet (λ i → proj₂ (p i)) (λ i → proj₂ (q i))) i j)) 
+        ; CarIsSet = λ _ _  p q i j → ((ℤisSet _ _ (λ i → proj₁ (p i)) (λ i → proj₁ (q i))) i j) , (((ℤisSet _ _ (λ i → proj₂ (p i)) (λ i → proj₂ (q i))) i j)) 
         ; _≤_ = _≤_
         ; ≤isProp = λ (p , p') (q , q') → λ i → ≤isProp p q i , ≤isProp p' q' i
-        ; reflexivity =  ≤-refl , ≤-refl
+        ; reflexivity =   ≤-refl , ≤-refl 
         ; _■_ = λ (p , q) (p' , q') → ≤-trans p p' , ≤-trans q q'
         ; _∨_ = λ (a , b) (a' , b') → max a a' , max b b' 
-        ; comm = λ {(a , b)} {(a' , b')} i →
-          (Builtin≡ToCubical≡ (⊔-comm a a') i , Builtin≡ToCubical≡ (⊔-comm b b') i )
-        ; uB = λ {(a , b)} {(a' , b')} →   i≤i⊔j a a' , i≤i⊔j b b'
-        ; sup = λ {(a , b)} {(a' , b')} {( a'' , b'')} p q → (⊔-lub  (proj₁ p) (proj₁ q)) , (⊔-lub  (proj₂ p) (proj₂ q))
+        ; comm = λ {(a , b)} {(a' , b')} i →         (Cubical.Data.Int.maxComm a a') i , (Cubical.Data.Int.maxComm b b') i
+
+        ; uB = λ {(a , b)} {(a' , b')} →   ≤max , ≤max --≤-max a a' , ≤-max b b'
+        ; sup = λ {(a , b)} {(a' , b')} {( a'' , b'')} p q → ( max-lub  (proj₁ p) (proj₁ q) ) , (max-lub  (proj₂ p) (proj₂ q) )
         } where
+        postulate max-lub : { a b c : ℤ} → a ≤ℤ c →  b ≤ℤ  c → max a b ≤ℤ c
+--        max-lub p q = {!!}
 
+        postulate ≤isProp : {a b : ℤ} → isProp (a ≤ℤ b)
+       -- ≤isProp p q = {!!} -- (≤-irrelevant p q)
 
-        ≤isProp : {a b : ℤ} → isProp (a ≤ℤ b)
-        ≤isProp p q = Builtin≡ToCubical≡ (≤-irrelevant p q)
-        ≡-irrelevant : Irrelevant {A = ℤ} _≡'_
-        ≡-irrelevant = Decidable⇒UIP.≡-irrelevant _≟_
-        ℤisSet : {a b : ℤ} → isProp (a ≡ b)
-        ℤisSet {a = a} {b = b} =  substEquiv isProp EqEquiv λ p q → Builtin≡ToCubical≡ (≡-irrelevant p q)
+        
   grid : Set (lsuc lzero)
   grid = CarpetOnJ J 
 -- ⊔-identityˡ
@@ -96,13 +97,15 @@ module _  where
     C = CarpetOnJToCarpet G
     
     open UnivalentCarpet2 C hiding (_≤_) public
+    ≤-suc' : (x : ℤ) → x ≤ℤ 1 + x
+    ≤-suc' x = ≤-pos+-trans ≤-refl
     private
       r : Dir
       r = H
     f' : (p : Pos) → (xarg p , yarg p) ≤ (xarg ( p °) , yarg (p ° ))
-    f' (H ! x ! y) =  (i≤suc[i] x , ≤-refl)
-    f' (V ! x ! y) =  (≤-refl , i≤suc[i] y)
-    f' (D ! x ! y) =  (i≤suc[i] x , i≤suc[i] y)
+    f' (H ! x ! y) =  ( ≤-suc' x  , ≤-refl)
+    f' (V ! x ! y) =  (≤-refl ,  ≤-suc' y)
+    f' (D ! x ! y) =  (≤-suc' x , ≤-suc' y)
     f : (p : Pos) → 𝕏 (xarg p , yarg p) ⊙→ 𝕏 (xarg ( p °) , yarg (p ° ))
     f p = ϕ (f' p)
     module _ (p : Pos) where

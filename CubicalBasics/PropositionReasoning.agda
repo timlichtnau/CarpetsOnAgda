@@ -1,10 +1,11 @@
 {-# OPTIONS --cubical --safe --without-K #-}
 module CubicalBasics.PropositionReasoning where
 open import CubicalBasics.cubical-prelude hiding (_∧_)
-open import Data.Product
-open import Function.Base
-open import Level
+-- open import Data.Product
+-- open import Cubical.Foundations.Prelude -- using (id ; ∘)
+open import Agda.Primitive using (Level ; Setω)
 open import CubicalBasics.IsomorphismCubical
+
 record Proposition {ℓ} : Type (lsuc ℓ) where
   constructor Propo
   field
@@ -18,6 +19,7 @@ open Proposition public
 data ∥_∥₋₁ {ℓ} (A : Type ℓ) : Type ℓ where
   ∣_∣₋₁ : A → ∥ A ∥₋₁
   squash₁ : (x y : ∥ A ∥₋₁) → x ≡ y
+
 ∥_∥ : {ℓ : Level} (A : Type ℓ) → Proposition {ℓ}
 ∥ A ∥ = Propo ∥ A ∥₋₁ squash₁
 forallP : {A : Type ℓ} → (A → Proposition {ℓ'}) → Proposition {ℓ ⊔ ℓ'}
@@ -112,5 +114,3 @@ logicalEquivalentsAreEqual : {A B : Proposition {ℓ}} → (asType A → asType 
 logicalEquivalentsAreEqual {ℓ = ℓ} {A = Propo  A Ap} {B = Propo B  Bp} f g i = Propo (ua  A≃B i) ((isProp→PathP (λ j → isPropisProp {A = ua A≃B j}) Ap Bp i)) where
  A≃B : A ≃ B
  A≃B = f , isoToIsEquiv (iso f g (λ b → Bp _ _) λ _ → Ap _ _)
-  
-

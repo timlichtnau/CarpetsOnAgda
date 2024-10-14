@@ -1,12 +1,12 @@
 {-# OPTIONS --cubical #-}
-open import Level
-open import CubicalBasics.cubical-prelude hiding (_∨_)
-open import Data.Product
+-- open import Level
+open import CubicalBasics.cubical-prelude hiding (_∨_  )
+-- open import Data.Product
 open import CubicalBasics.PointedTypesCubical
 open import CubicalBasics.PropositionReasoning
 open import CubicalBasics.IsomorphismCubical
-fib : {A : Set ℓ} {B : Set ℓ'} → (A → B) → B → Set (ℓ ⊔ ℓ')
-fib f b = ∃ (λ a → f a ≡ b)
+fib : {A : Set ℓ} {B : Set ℓ'} → (A → B) → B → Set ( ℓ ⊔ ℓ' )
+fib f b = Σ _ (λ a → f a ≡ b)
 fibIsSet : {A : Set ℓ} {B : Set ℓ'} → isSet A → isSet B →  (f : A → B) → (b : B) →  isSet (fib f b)
 fibIsSet isSetA isSetB f b = Σset isSetA λ a → isProp→isSet (isSetB _ _)
 open Monad truncMonad

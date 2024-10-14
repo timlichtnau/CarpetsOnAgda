@@ -1,24 +1,24 @@
-{-# OPTIONS --cubical --without-K #-}
+{-# OPTIONS --cubical #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+--open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+-- open import Function.Base using (_∘_)
+-- open import Relation.Binary.Definitions 
+open import Cubical.Relation.Binary.Order using (IsPoset ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 open import CubicalBasics.PropositionReasoning
-import Relation.Binary.Reasoning.Base.Single
+-- import Relation.Binary.Reasoning.Base.Single
 
 module HomoAlgOnCarpets {o e} (carpet : Carpet {o} {ℓ} {e} ) where
 open CarpetHelper carpet
@@ -33,14 +33,15 @@ _↔_  A B  = A ⊂ B × B ⊂ A --  (x : U⊙ 𝕏) → (x ∈ A) ↔ (x ∈ B 
   hello : (x : X j) → ⟨ A ⟩ x ≡ ⟨ B ⟩ x
   hello x = logicalEquivalentsAreEqual (λ y → f & (x , y) ) (λ y → g & (x , y))
 --}  
-record SubEl : Type (suc zero ⊔ o) where
+record SubEl : Type (suc lzero ⊔ o) where
   constructor _,_
   field
     daIn : Carrier 
     sub : (SubPtd (𝕏 daIn))
 open SubEl public
 
-
+postulate SubEl_isSet : isSet SubEl
+-- SubEl_isSet (i , A) (j , B) = {!!}
 Im : (p : k ≤ j) → SubEl
 Im {j = j} p = j , im (ϕ p)
 Ker : (p : k ≤ j) → SubEl

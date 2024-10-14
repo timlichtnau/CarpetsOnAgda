@@ -1,17 +1,18 @@
 {-# OPTIONS --without-K --safe --cubical #-}
-open import Level
 
 
-open import Data.Sum
 
-open import Function.Base using (id; _∘_)
+open import Cubical.Data.Sum
 
-open import Relation.Binary.Definitions
-open import Data.Product
+-- open import Cubical.Function.Base using (id; _∘_)
+
+-- open import Cubical.Relation.Binary.Definitions
+-- open import Data.Product
 --open import Data.Function
 open import CubicalBasics.PropositionReasoning
 open import CubicalBasics.cubical-prelude
 open import CubicalBasics.IsomorphismCubical
+open import Agda.Primitive renaming (lsuc to suc) -- (Level ; suc)
 module CubicalBasics.PointedTypesCubical where
   private variable
    l l' : Level

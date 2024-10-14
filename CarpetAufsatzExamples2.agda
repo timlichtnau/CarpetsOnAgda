@@ -1,23 +1,23 @@
-{-# OPTIONS --cubical --without-K #-}
+{-# OPTIONS --cubical -WnoUnsupportedIndexedMatch #-}
 open import CarpetCubical3 
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import CubicalBasics.PropositionReasoning
-open import Level
+-- open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 -- open import Relation.Binary.Core
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions
-open import Relation.Binary.Structures using (IsPartialOrder)
+-- open import Function.Base using (_∘_)
+-- open import Relation.Binary.Definitions
+-- open import Relation.Binary.Structures using (IsPartialOrder)
 open import Equalizer
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd hiding (surjComp)
 import QuasiIsos
-import Relation.Binary.Reasoning.Base.Single
+-- import Relation.Binary.Reasoning.Base.Single
 import UnivalentCarpet2
 module CarpetAufsatzExamples2 where
 module Lemmata {o e} (C : Carpet {o} {ℓ} {e}) where
@@ -49,7 +49,7 @@ module Lemmata {o e} (C : Carpet {o} {ℓ} {e}) where
           ∼⟨ BWD p ⟩ -- BWD p ⟩
         Full j
           ∼⟨ FWD (p ■ q) ⟩
-         Im (p ■ q) ∎
+         Im (p ■ q) ∎ 
          
     surjComp' : surj (ϕ p) → surj (ϕ r) → surj (ϕ q)
     surjComp' surjf surjh = to⊂ (proj₂ foo) (sup reflexivity reflexivity) where
@@ -64,7 +64,7 @@ module Lemmata {o e} (C : Carpet {o} {ℓ} {e}) where
           ∼⟨ FWD p ⟩
         Im p
           ∼⟨ FWD q ⟩         
-        Im q ∎
+        Im q ∎ 
     injComp : Mono p → Mono q → Mono r
     injComp m m' = to⊂ me re where
       me : Ker (p ■ q) =>'[ UNC (intro⊂ m) ] 𝟎 j
@@ -114,14 +114,22 @@ module Lemmata {o e} (C : Carpet {o} {ℓ} {e}) where
         intro⊂ (Sth⊂Full) ∷ intro⊂ (surjp) ∷ BWD p
       JUMPBACK
         % intro⊆ (ker q ⊂0) ∶ 0⇒ker r ∶ refl=>' , q
-    kerFWDFac : Ker r =>' Ker q
-    kerFWDFac =  IncUncert' (
+    kerFWDFacExp : Ker r =>'[ k ] Ker q
+    kerFWDFacExp = END (back' (%  IncUncert' (
              _ , ROUNDTRIP
                 FWD p
               JUMPBACK  %
               (intro⊆ (ker r ⊂0)) ∶
-              0⇒ker q ∶ refl=>' , q) (re ∨R)  
-                  
+                0⇒ker q ∶ refl=>' , q) (re ∨R)))
+    kerFWDFac : Ker r =>' Ker q
+    kerFWDFac = _ , kerFWDFacExp
+  --tp : {j : Carrier } {X Y : (SubPtd (𝕏 j))} (p : X ≡ Y)  → (j , X) =>'[ j ] (j , Y)
+  --tp {j = j} {X} {Y} p = {!transit!} --  subst (λ i → (j , X) =>'[ j ] (j , (p i))) (% refl=>')
+  kerFWDFac'Expl : {i j k : Carrier} (p : i ≤ j) (q : j ≤ k) (r : i ≤ k) →  Ker r =>'[ j ] Ker q
+  kerFWDFac'Expl {i = i} {j = j} p q r = % trans=>' ( _ ,  EQUAL (subst≤ (λ q → Ker r ~~ i  ~> Ker q) (provider' refl=> ))) (kerFWDFac {p = p} {q = q})  -- Ker r ~~ daIn (Ker q) ~> Ker q
+  kerFWDFac' : {i j k : Carrier} (p : i ≤ j) (q : j ≤ k) (r : i ≤ k) →  Ker r =>' Ker q
+  kerFWDFac' {i = i} p q r = _ , kerFWDFac'Expl p q r
+  
 {-- OLD BUT WORKING CODE
     InjExtOld : mono (ϕ r) → ker (ϕ q) ⊂ im (ϕ p) → mono (ϕ q)
     InjExtOld monoh kerg⊂imf =  to⊂ (foo ∷ 0toF0 p) (R∨ sup p p ∨R)  where

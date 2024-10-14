@@ -1,7 +1,7 @@
 {-# OPTIONS --cubical #-}
-open import Level
+-- open import Level
 open import CubicalBasics.cubical-prelude hiding (_∨_)
-open import Data.Product
+-- open import Cubical.Data.Prod
 open import CubicalBasics.PointedTypesCubical
 open import CubicalBasics.PropositionReasoning using (isSetIsProp)
 -- open import CubicalBasics.CubicalFun
@@ -34,7 +34,7 @@ module Funs (J : SemiLattice o ℓ e) where
   subst≤ A = subst A (≤isProp _ _)
   PathTo≤ : {x y : SemiLattice.Carrier J} → x ≡ y → SemiLattice._≤_ J x y
   PathTo≤ {x = x} {y = y} p = (subst (λ a → SemiLattice._≤_ J x a ) p (SemiLattice.reflexivity J))
-  convertEq : {j k  : Carrier} → j ≡ k → j ≤ k × k ≤ j
+  convertEq : {j k  : Carrier} → j ≡ k → (j ≤ k) × (k ≤ j)
   convertEq =  λ p → PathTo≤ p , PathTo≤ (sym p) 
   uB' :  ∀ {i j} → j ≤ (i ∨ j)
   uB' {k} {j'} = uB {j'} {k} ■ PathTo≤ comm

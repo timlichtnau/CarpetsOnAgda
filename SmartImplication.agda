@@ -1,28 +1,28 @@
-{-# OPTIONS --cubical --without-K  #-}
+{-# OPTIONS --cubical -WnoUnsupportedIndexedMatch #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+-- open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+-- open import Function.Base using (_∘_)
+-- open import Relation.Binary.Definitions 
+--open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd
 
-import Relation.Binary.Reasoning.Base.Single
+-- import Relation.Binary.Reasoning.Base.Single
 import HomoAlgOnCarpets
 
 -- open import Relation.Binary renaming (_⇒_ to _==>_)
-open import DoublePreorderReasoning
+-- open import DoublePreorderReasoning
 open import FibreArgumentation
 import NaiveImplication
 module SmartImplication {o e}(carpet : Carpet {o} {ℓ} {e} ) where
@@ -46,15 +46,15 @@ leftFunc {A = A} f g = ↔to≡ ((⊂: λ x →
   z ← proj₂ (proj₁ y) ,
   return ((proj₁ z) , (sym (transit' f g (proj₁ (proj₁ z))) ∙ cong ⟦ ϕ g ⟧ (proj₂ z) ∙ proj₂ y))) , ⊂: λ x → y ← proj₂ x , return ((pushIntoPshFWD  (ϕ f) {A =  A } (proj₁ y)) , (transit' f g _ ∙ proj₂ y)))
 --- A =>'[ l ]  B  TELLS YOU, that the map A ×ₗ B → A is surjective.
-data _=>'[_]_ : SubEl → Carrier → SubEl → Type (suc zero ⊔ o ⊔ e) where
+data _=>'[_]_ : SubEl → Carrier → SubEl → Type (suc lzero ⊔ o ⊔ e) where
   START : ∀ {A B } → (p : A ~~ daIn A ~> B)  → A =>'[ daIn A ] B
   END : ∀ {A B } → (p :  A ~~ daIn B ~> B)  → A =>'[ daIn B ] B
   EQUAL : ∀ {j} {A B : SubPtd (𝕏 j) } → (p : (j , A) ~~ j ~> (j , B)) → (j , A) =>'[ j ] (j , B)
   NOTHING : ∀ {A B } →  (p : A => B) → A =>'[ uncert p   ] B
   
-_=>'_ : SubEl → SubEl → Type (suc zero ⊔ o ⊔ e) 
+_=>'_ : SubEl → SubEl → Type (suc lzero ⊔ o ⊔ e) 
 A =>' B = Σ[ j ∈ Carrier ] (A =>'[ j ] B)
-
+postulate =>'isPropValued : ∀ A B →  isProp (A =>' B)
 back' : ∀ { A B } → A =>'[ j ] B → A ~~ j ~> B
 back' {j = j} (START p ) = p
 back' {j = j}  (END p ) =  p
@@ -157,7 +157,7 @@ Sth=>'Full =  intro⊂ (Sth⊂Full)
 FWD : {A : SubEl} → (p : daIn A ≤ j) → A  =>' Im p
 FWD p = Sth=>'Full ∷ FWD' p
 
-_==>_ : {j : Carrier} (A B : SubEl) → Set (suc zero ⊔ o ⊔ e)
+_==>_ : {j : Carrier} (A B : SubEl) → Set (suc lzero ⊔ o ⊔ e)
 _==>_ {j = j} A B =  A =>'[ j ] B
 
 to⊂' : {A B : SubPtd (𝕏 j)} → (p : (j , A) =>'[ j ] (j , B)) → A ⊂ B
@@ -166,7 +166,7 @@ to⊂' p = outro⊂ (=>To⊂ (back (_ , p)) re)
 to⊂ : {A B : SubPtd (𝕏 j)} → (p : (j , A) =>'[ k ] (j , B)) → k ≤ j  → A ⊂ B
 to⊂ p q = to⊂' (IncUncert'' p q)
 
-_=>[_]_ : SubEl → Carrier → SubEl → Set (lsuc lzero Level.⊔ o Level.⊔ e)
+_=>[_]_ : SubEl → Carrier → SubEl → Set (ℓ-max (ℓ-max (ℓ-suc ℓ-zero) o) e)
 A =>[ l ] B = Σ[ ρ ∈ A =>' B ] UNC ρ ≤ l
 
 

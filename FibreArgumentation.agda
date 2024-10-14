@@ -1,16 +1,16 @@
 {-# OPTIONS --cubical --without-K #-}
 open import CarpetCubical3 
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+-- open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+-- open import Data.Product
 open import CubicalBasics.PropositionReasoning
-open import Level
+-- open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 -- open import Relation.Binary.Core
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions
-open import Relation.Binary.Structures using (IsPartialOrder)
+-- open import Function.Base using (_∘_)
+--open import Relation.Binary.Definitions
+--open import Relation.Binary.Structures using (IsPartialOrder)
 open import Equalizer
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
@@ -18,7 +18,7 @@ open import CubicalBasics.cubicalEqualityReasoning
 open import CubicalBasics.IsomorphismCubical
 open import HomoAlgStd
 
-import Relation.Binary.Reasoning.Preorder
+-- import Relation.Binary.Reasoning.Preorder
 
 
 module _ {o e} (C : Carpet {o} {ℓ} {e}) where

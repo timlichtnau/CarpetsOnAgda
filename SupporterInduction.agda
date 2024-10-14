@@ -1,28 +1,28 @@
 {-# OPTIONS --cubical --without-K #-}
 open import CarpetCubical3
 open import CubicalBasics.PointedTypesCubical
-open import Relation.Binary.Bundles 
+--open import Relation.Binary.Bundles 
 open import Agda.Builtin.Sigma
-open import Data.Product
+--open import Data.Product
 open import Agda.Builtin.Unit
 open import CubicalBasics.PropositionReasoning
-open import Level
+--open import Level
 --open import Relation.Binary.PropositionalEquality hiding (trans)
 
-open import Function.Base using (_∘_)
-open import Relation.Binary.Definitions 
-open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
+--open import Function.Base using (_∘_)
+--open import Relation.Binary.Definitions 
+--open import Relation.Binary.Structures using (IsPartialOrder ; IsPreorder)
 open import Equalizer3
 open import SemiLattices
 open import CubicalBasics.cubical-prelude hiding (_∨_ ; _∧_)
 open import CubicalBasics.cubicalEqualityReasoning
 open import HomoAlgStd hiding (fib)
 
-import Relation.Binary.Reasoning.Base.Single
+--import Relation.Binary.Reasoning.Base.Single
 import HomoAlgOnCarpets
 import SmartImplication
-open import Relation.Binary renaming (_⇒_ to _===>_)
-open import DoublePreorderReasoning
+--open import Relation.Binary renaming (_⇒_ to _===>_)
+--open import DoublePreorderReasoning
 open import FibreArgumentation
 import NaiveImplication
 module SupporterInduction {o e} (carpet : Carpet {o} {ℓ} {e} ) where
@@ -52,7 +52,7 @@ private
     ind (x , xp) ((y , yp) , (kern 0=fx _)) = fmap (Σmap (λ a → deeper uB')) (provider ker=>p (x , (sym (0=fx))))
     ind (x , xp) ((.x , yp) , inh) = fmap (Σmap (λ a → deeper uB)) (provider (b=>p) (x , yp))  
 
-record SupScheme (B B' : SubPtd (𝕏 j)) {q : j ≤ k} (A P : SubEl) : Type (suc zero ⊔ e ⊔ o) where
+record SupScheme (B B' : SubPtd (𝕏 j)) {q : j ≤ k} (A P : SubEl) : Type (suc lzero ⊔ e ⊔ o) where
 
     field
       A=>B : A =>' (j , B)
